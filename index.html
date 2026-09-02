@@ -113,7 +113,34 @@ tbody tr:hover{background:#f5f7fa}
 #g_id_signin{display:flex;justify-content:center}
 #erro-acesso{display:none;color:#c62828;background:#ffcdd2;padding:12px;border-radius:8px;margin-top:15px;font-size:14px}
 #app-shell{display:none}
-@media(max-width:768px){.sidebar{width:60px}.sidebar-header h1,.sidebar-header p,.sidebar-user span,.nav-item span:not(.emoji){display:none}.main-content{margin-left:60px;padding:15px}.form-row{grid-template-columns:1fr}.filter-bar input{min-width:150px}}
+html{overflow-x:hidden}
+body{overflow-x:hidden}
+@media(max-width:768px){
+.sidebar{width:64px}
+.sidebar-header{padding:16px 6px}
+.sidebar-header h1,.sidebar-header p,.sidebar-user span,.nav-item span:not(.emoji){display:none}
+.sidebar-user{padding:10px 6px;justify-content:center}
+.sidebar-user button{padding:4px 6px;font-size:10px}
+.nav-item{padding:14px 0;justify-content:center}
+.main-content{margin-left:64px;padding:14px;width:calc(100% - 64px);box-sizing:border-box;overflow-x:hidden}
+.page-header h2{font-size:22px}
+.page-header .emoji{font-size:26px}
+.dash-cards{grid-template-columns:1fr 1fr;gap:12px}
+.dash-card{padding:16px}
+.dash-card .num{font-size:30px}
+.form-container{max-width:100%;padding:18px}
+.form-row{grid-template-columns:1fr}
+.filter-bar{flex-direction:column;align-items:stretch}
+.filter-bar input,.filter-bar select{width:100%;min-width:0}
+.filter-count{margin-left:0;text-align:left}
+.table-container{padding:10px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{min-width:640px}
+.func-grid{grid-template-columns:1fr}
+.actions-bar{gap:8px}
+.actions-bar .btn{flex:1;justify-content:center;padding:10px 14px;font-size:14px}
+.email-container{max-width:100%;padding:18px}
+.sub-tab{padding:10px 14px;font-size:14px}
+}
 </style>
 </head>
 <body>
