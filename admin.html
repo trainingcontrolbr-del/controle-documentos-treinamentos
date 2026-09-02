@@ -36,6 +36,17 @@ tbody td{padding:10px;border-bottom:1px solid #eee}
 .toast{position:fixed;top:20px;right:20px;padding:16px 24px;border-radius:10px;color:white;font-weight:600;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,0.2)}
 .toast.success{background:#43a047}.toast.error{background:#e53935}
 .empty-state{text-align:center;padding:30px;color:#999}
+html{overflow-x:hidden}
+body{overflow-x:hidden}
+@media(max-width:768px){
+body{padding:14px}
+#app-shell{padding:14px}
+.header h1{font-size:19px}
+.card{padding:16px}
+table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch}
+thead,tbody{display:table}
+table{min-width:560px}
+}
 </style>
 </head>
 <body>
