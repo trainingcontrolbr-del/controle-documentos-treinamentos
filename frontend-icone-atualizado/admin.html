@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin - SaaS Documentos e Treinamentos</title>
+<link rel="manifest" href="manifest-admin.json">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="theme-color" content="#1a237e">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Admin Docs">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f0f2f5;color:#333;font-size:16px}
+#tela-login{position:fixed;inset:0;background:linear-gradient(135deg,#1a237e,#283593);display:flex;align-items:center;justify-content:center;z-index:2000}
+#tela-login .box{background:white;border-radius:16px;padding:50px 40px;text-align:center;max-width:380px;box-shadow:0 10px 40px rgba(0,0,0,0.3)}
+#tela-login h1{color:#1a237e;font-size:20px;margin-bottom:8px}
+#tela-login p{color:#777;font-size:14px;margin-bottom:25px}
+#g_id_signin{display:flex;justify-content:center}
+#erro-acesso{display:none;color:#c62828;background:#ffcdd2;padding:12px;border-radius:8px;margin-top:15px;font-size:14px}
+#app-shell{display:none;padding:30px;max-width:1000px;margin:0 auto}
+.header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:25px}
+.header h1{font-size:26px;color:#1a237e}
+.header button{background:none;border:1px solid #ccc;border-radius:6px;padding:6px 14px;cursor:pointer;font-size:13px}
+.card{background:white;border-radius:14px;padding:25px;box-shadow:0 2px 12px rgba(0,0,0,0.08);margin-bottom:20px}
+.card h2{color:#1a237e;font-size:19px;margin-bottom:15px}
+.form-group{margin-bottom:15px}
+.form-group label{display:block;margin-bottom:6px;font-weight:600;font-size:14px;color:#555}
+.form-group input{width:100%;padding:11px 14px;border:2px solid #e0e0e0;border-radius:8px;font-size:15px}
+.field-hint{font-size:13px;color:#888;margin-top:4px}
+.btn{padding:11px 24px;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer}
+.btn-primary{background:linear-gradient(135deg,#1a73e8,#4285f4);color:white}
+.btn-danger{background:#e53935;color:white;padding:7px 14px;font-size:13px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+thead th{background:#1a237e;color:white;padding:12px 10px;text-align:left}
+tbody td{padding:10px;border-bottom:1px solid #eee}
+.status-badge{padding:4px 12px;border-radius:20px;font-size:13px;font-weight:600}
+.status-ativo{background:#c8e6c9;color:#2e7d32}
+.status-inativo{background:#ffcdd2;color:#c62828}
+.toast{position:fixed;top:20px;right:20px;padding:16px 24px;border-radius:10px;color:white;font-weight:600;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,0.2)}
+.toast.success{background:#43a047}.toast.error{background:#e53935}
+.empty-state{text-align:center;padding:30px;color:#999}
+.table-scroll{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+html{overflow-x:hidden}
+body{overflow-x:hidden}
+@media(max-width:768px){
+body{padding:14px}
+#app-shell{padding:14px}
+.header h1{font-size:19px}
+.card{padding:16px}
+table{min-width:560px}
+}
+</style>
+</head>
+<body>
+
+<div id="tela-login">
+<div class="box">
+<h1>🛠️ Painel Admin</h1>
+<p>Acesso restrito — entre com a conta admin</p>
+<div id="g_id_signin"></div>
+<div id="erro-acesso"></div>
+</div>
+</div>
+
+<div id="app-shell">
+<div class="header"><h1>🛠️ Gestão de Empresas Clientes</h1><button onclick="logout()">Sair</button></div>
+
+<div class="card">
+<h2>➕ Cadastrar Nova Empresa</h2>
+<div class="form-group"><label>Nome da Empresa *</label><input type="text" id="novo-nome" placeholder="Ex: Empresa XYZ Ltda"></div>
+<div class="form-group"><label>E-mails autorizados (separados por vírgula)</label><input type="text" id="novo-emails" placeholder="joao@gmail.com, maria@empresa.com"><p class="field-hint">💡 Esses e-mails poderão logar no sistema desta empresa.</p></div>
+<button class="btn btn-primary" onclick="criarEmpresa()">💾 Criar Empresa</button>
+</div>
+
+<div class="card">
+<h2>🏢 Empresas Clientes Cadastradas</h2>
+<div class="table-scroll"><table><thead><tr><th>Empresa</th><th>Planilha</th><th>Status</th><th>Criado em</th><th>Ações</th></tr></thead><tbody id="tbody-empresas"></tbody></table></div>
+</div>
+
+<div class="card">
+<h2>🏭 Cadastro de Empresas (CNPJ) dentro de um Cliente</h2>
+<p class="field-hint" style="margin-bottom:15px">Aqui você cadastra as empresas/CNPJs que aparecerão no formulário de Documentos de cada cliente (ex: empresas terceirizadas cujos documentos são controlados). Isso NÃO aparece para o usuário do cliente editar — só ele vê a lista pronta ao cadastrar um documento.</p>
+<div class="form-group"><label>Selecione a Empresa Cliente *</label><select id="tenant-select" onchange="carregarEmpresasTenant()"><option value="">Selecione...</option></select></div>
+
+<div id="form-empresa-tenant" style="display:none;border-top:1px solid #eee;padding-top:15px;margin-top:10px">
+<div class="form-group"><label>Nome da Empresa (CNPJ) *</label><input type="text" id="tenant-emp-nome" placeholder="Ex: Empresa XYZ Ltda"></div>
+<div class="form-group"><label>CNPJ</label><input type="text" id="tenant-emp-cnpj" placeholder="00.000.000/0000-00"></div>
+<div class="form-group"><label>Responsável</label><input type="text" id="tenant-emp-responsavel" placeholder="Nome do responsável"></div>
+<div class="form-group"><label>Telefone</label><input type="text" id="tenant-emp-telefone" placeholder="(00) 0000-0000"></div>
+<input type="hidden" id="tenant-emp-id">
+<button class="btn btn-primary" onclick="salvarEmpresaTenant()">💾 Salvar Empresa</button>
+<button class="btn" style="background:#eee" onclick="novaEmpresaTenant()">➕ Nova (limpar campos)</button>
+</div>
+
+<div class="table-scroll"><table style="margin-top:20px" id="table-empresas-tenant"><thead><tr><th>Nome</th><th>CNPJ</th><th>Responsável</th><th>Telefone</th><th>Ações</th></tr></thead><tbody id="tbody-empresas-tenant"></tbody></table></div>
+</div>
+</div>
+
+<script src="config.js"></script>
+<script src="auth.js"></script>
+<script src="api.js"></script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('sw.js').catch(function (e) { console.warn('SW falhou:', e); });
+  });
+}
+window.addEventListener('DOMContentLoaded', function () {
+  iniciarLogin(function (usuario) {
+    api('admin_getEmpresas').then(function (res) {
+      if (!res.sucesso) {
+        document.getElementById('erro-acesso').style.display = 'block';
+        document.getElementById('erro-acesso').textContent = res.mensagem || 'Acesso não autorizado.';
+        return;
+      }
+      document.getElementById('tela-login').style.display = 'none';
+      document.getElementById('app-shell').style.display = 'block';
+      renderEmpresas(res.data);
+    });
+  });
+});
+
+function showToast(msg,tipo){var t=document.createElement('div');t.className='toast '+(tipo||'success');t.textContent=msg;document.body.appendChild(t);setTimeout(function(){t.remove()},5000)}
+function onErr(err){showToast('Erro: '+(err&&err.message?err.message:err),'error')}
+
+function criarEmpresa(){
+var nome=document.getElementById('novo-nome').value.trim();
+var emails=document.getElementById('novo-emails').value.trim();
+if(!nome){showToast('⚠️ Informe o nome da empresa!','error');return}
+api('admin_criarEmpresa',{nome:nome,emails:emails}).then(function(res){
+showToast(res.mensagem,res.sucesso?'success':'error');
+if(res.sucesso){document.getElementById('novo-nome').value='';document.getElementById('novo-emails').value='';carregarEmpresas()}
+}).catch(onErr);
+}
+
+function desativar(id){
+if(!confirm('Desativar esta empresa?'))return;
+api('admin_desativarEmpresa',{id:id}).then(function(res){showToast(res.mensagem,res.sucesso?'success':'error');carregarEmpresas()}).catch(onErr);
+}
+
+function carregarEmpresas(){
+api('admin_getEmpresas').then(function(res){renderEmpresas(res.data)}).catch(onErr);
+}
+
+function renderEmpresas(emps){
+emps=emps||[];
+var tbody=document.getElementById('tbody-empresas');
+if(emps.length===0){tbody.innerHTML='<tr><td colspan="5" class="empty-state">Nenhuma empresa cadastrada ainda.</td></tr>';return}
+tbody.innerHTML=emps.map(function(e){
+return '<tr><td><strong>'+e.nome+'</strong></td><td style="font-family:monospace;font-size:12px">'+e.spreadsheetId+'</td><td><span class="status-badge '+(e.status==='Ativo'?'status-ativo':'status-inativo')+'">'+e.status+'</span></td><td>'+e.dataCriacao+'</td><td><button class="btn btn-danger" onclick="desativar(\''+e.id+'\')">Desativar</button></td></tr>';
+}).join('');
+
+// Popula também o select de empresas clientes (para a seção de CNPJs)
+var select=document.getElementById('tenant-select');
+var valorAtual=select.value;
+select.innerHTML='<option value="">Selecione...</option>'+emps.filter(function(e){return e.status==='Ativo'}).map(function(e){return '<option value="'+e.id+'">'+e.nome+'</option>'}).join('');
+if(valorAtual)select.value=valorAtual;
+}
+
+// ---------------------------------------------------------------------
+// EMPRESAS (CNPJs) DENTRO DE CADA CLIENTE
+// ---------------------------------------------------------------------
+var listaEmpresasTenantCache=[];
+
+function novaEmpresaTenant(){
+document.getElementById('tenant-emp-id').value='';
+document.getElementById('tenant-emp-nome').value='';
+document.getElementById('tenant-emp-cnpj').value='';
+document.getElementById('tenant-emp-responsavel').value='';
+document.getElementById('tenant-emp-telefone').value='';
+}
+
+function carregarEmpresasTenant(){
+var idEmpresa=document.getElementById('tenant-select').value;
+if(!idEmpresa){document.getElementById('form-empresa-tenant').style.display='none';return}
+document.getElementById('form-empresa-tenant').style.display='block';
+novaEmpresaTenant();
+api('admin_getEmpresasTenant',{idEmpresa:idEmpresa}).then(function(res){
+var emps=res.data||[];
+listaEmpresasTenantCache=emps;
+var tbody=document.getElementById('tbody-empresas-tenant');
+if(emps.length===0){tbody.innerHTML='<tr><td colspan="5" class="empty-state">Nenhuma empresa cadastrada para este cliente ainda.</td></tr>';return}
+tbody.innerHTML=emps.map(function(e){
+return '<tr><td>'+(e.nome||'—')+'</td><td>'+(e.cnpj||'—')+'</td><td>'+(e.responsavel||'—')+'</td><td>'+(e.telefone||'—')+'</td><td><button class="btn" style="background:#eee;font-size:13px;padding:6px 12px" onclick="editarEmpresaTenant(\''+e.id+'\')">✏️</button> <button class="btn btn-danger" onclick="excluirEmpresaTenant(\''+e.id+'\')">🗑️</button></td></tr>';
+}).join('');
+}).catch(onErr);
+}
+
+function editarEmpresaTenant(id){
+var emp=listaEmpresasTenantCache.find(function(e){return e.id===id});
+if(!emp)return;
+document.getElementById('tenant-emp-id').value=emp.id;
+document.getElementById('tenant-emp-nome').value=emp.nome||'';
+document.getElementById('tenant-emp-cnpj').value=emp.cnpj||'';
+document.getElementById('tenant-emp-responsavel').value=emp.responsavel||'';
+document.getElementById('tenant-emp-telefone').value=emp.telefone||'';
+}
+
+function salvarEmpresaTenant(){
+var idEmpresa=document.getElementById('tenant-select').value;
+if(!idEmpresa){showToast('⚠️ Selecione a empresa cliente primeiro!','error');return}
+var dados={
+id:document.getElementById('tenant-emp-id').value,
+nome:document.getElementById('tenant-emp-nome').value.trim(),
+cnpj:document.getElementById('tenant-emp-cnpj').value.trim(),
+responsavel:document.getElementById('tenant-emp-responsavel').value.trim(),
+telefone:document.getElementById('tenant-emp-telefone').value.trim()
+};
+if(!dados.nome){showToast('⚠️ Preencha o nome da empresa!','error');return}
+api('admin_salvarEmpresaTenant',{idEmpresa:idEmpresa,dados:dados}).then(function(res){
+showToast(res.mensagem,res.sucesso?'success':'error');
+if(res.sucesso){novaEmpresaTenant();carregarEmpresasTenant()}
+}).catch(onErr);
+}
+
+function excluirEmpresaTenant(id){
+if(!confirm('Excluir esta empresa?'))return;
+var idEmpresa=document.getElementById('tenant-select').value;
+api('admin_excluirEmpresaTenant',{idEmpresa:idEmpresa,id:id}).then(function(res){
+showToast(res.mensagem,res.sucesso?'success':'error');
+carregarEmpresasTenant();
+}).catch(onErr);
+}
+</script>
+</body>
+</html>
