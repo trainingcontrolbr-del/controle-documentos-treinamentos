@@ -6,6 +6,15 @@
 var mapNomeIdFunc={};var listaDocumentosCache=[];var listaTreinamentosCache=[];var listaFuncionariosCache=[];var fotoBase64=null,fotoMime=null;var anexoEmailBase64=null,anexoEmailMime=null,anexoEmailNome=null;
 
 // ---------------------------------------------------------------------
+// PWA - registra o service worker (necessário para "instalar" o app)
+// ---------------------------------------------------------------------
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('sw.js').catch(function (e) { console.warn('SW falhou:', e); });
+  });
+}
+
+// ---------------------------------------------------------------------
 // LOGIN / BOOTSTRAP
 // ---------------------------------------------------------------------
 window.addEventListener('DOMContentLoaded', function () {
